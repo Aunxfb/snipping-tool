@@ -1,5 +1,6 @@
 import sys
 from os.path import basename
+from PyQt5 import QtCore
 from PyQt5.QtCore import QPoint, Qt, QRect
 from PyQt5.QtWidgets import QAction, QMainWindow, QApplication, QPushButton, QMenu, QFileDialog
 from PyQt5.QtGui import QPixmap, QImage, QPainter, QPen
@@ -28,6 +29,18 @@ class Menu(QMainWindow):
         new_snip_action.setShortcut('Ctrl+N')
         new_snip_action.setStatusTip('Snip!')
         new_snip_action.triggered.connect(self.new_image_window)
+
+        # Copy snip
+        copy_snip_action = QAction('Copy', self)
+        copy_snip_action.setShortcut('Ctrl+C')
+        copy_snip_action.setStatusTip('Copy!')
+        copy_snip_action.triggered.connect(self.copy_to_clipboard)
+
+       # Copy base64
+        base64_snip_action = QAction('Base64', self)
+        base64_snip_action.setShortcut('Ctrl+6')
+        base64_snip_action.setStatusTip('64!')
+        base64_snip_action.triggered.connect(self.copy_as_base64)
 
         # Brush color
         brush_color_button = QPushButton("Brush Color")
@@ -59,6 +72,8 @@ class Menu(QMainWindow):
 
         self.toolbar = self.addToolBar('Exit')
         self.toolbar.addAction(new_snip_action)
+        self.toolbar.addAction(copy_snip_action)
+        self.toolbar.addAction(base64_snip_action)
         self.toolbar.addAction(save_action)
         self.toolbar.addWidget(brush_color_button)
         self.toolbar.addWidget(brush_size_button)
@@ -90,6 +105,25 @@ class Menu(QMainWindow):
             self.close()
         self.total_snips += 1
         self.snippingTool.start()
+
+    # copy to clipboard 
+    def copy_to_clipboard(self):
+    	if self.title != "Snipping Tool":
+    		#print("YAY")
+    		qpix = self.image
+    		QApplication.clipboard().setPixmap(qpix)
+
+    # copy as Base64
+    def copy_as_base64(self):
+    	if self.title != "Snipping Tool":
+    		qpix = self.image
+    		Qimage = qpix.toImage()
+    		ba = QtCore.QByteArray()
+    		buffer = QtCore.QBuffer(ba)
+    		buffer.open(QtCore.QIODevice.WriteOnly)
+    		Qimage.save(buffer, 'PNG')
+    		base64_data = ba.toBase64().data()
+    		QApplication.clipboard().setText(base64_data.decode("utf-8"))
 
     def save_file(self):
         file_path, name = QFileDialog.getSaveFileName(self, "Save file", self.title, "PNG Image file (*.png)")
